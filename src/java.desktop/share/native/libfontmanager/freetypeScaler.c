@@ -1618,23 +1618,6 @@ static void transformBGRABitmapGlyph(FT_GlyphSlot ftglyph, GlyphInfo* glyphInfo,
     freeSampledBGRABitmap(&sampledBitmap);
 }
 
-static void CopySupplementarySubpixelToGrey8(const UInt8* srcImage, int srcWidth, int srcHeight,
-                                             UInt8* dstImage, int dstWidth, int dstHeight,
-                                             int xOffset, int yOffset) {
-    int xDst = xOffset >= 0 ? xOffset : 0;
-    int xSrc = xDst - xOffset;
-    int yDst = yOffset >= 0 ? yOffset : 0;
-    int ySrc = yDst - yOffset;
-    int copyWidth = (xOffset + srcWidth > dstWidth ? dstWidth : xOffset + srcWidth) - xDst;
-    int copyHeight = (yOffset + srcHeight > dstHeight ? dstHeight : yOffset + srcHeight) - yDst;
-    int line;
-    for (line = 0; line < copyHeight; line++) {
-        const UInt8* src = srcImage + (ySrc + line) * srcWidth + xSrc;
-        UInt8* dst = dstImage + (yDst + line) * dstWidth + xDst;
-        memcpy(dst, src, copyWidth);
-    }
-}
-
 /* JDK does not use glyph images for fonts with a
  * pixel size > 100 (see THRESHOLD in OutlineTextRenderer.java)
  * so if the glyph bitmap image dimension is > 1024 pixels,
@@ -1913,38 +1896,32 @@ static jlong
         //4 bytes per pixel for BGRA glyphs
         // or 1 byte per pixel for AA and B&W
         if (subpixelGlyph) {
-            int originLeft = ftglyph->bitmap_left;
-            int originTop = ftglyph->bitmap_top;
             // Copy first image with zero subpixel offset
-            CopySupplementarySubpixelToGrey8(ftglyph->bitmap.buffer, ftglyph->bitmap.width, ftglyph->bitmap.rows,
-                                             glyphInfo->image, width, height, 0, 0);
-            int sx = (1 << 6) / subpixelResolutionX, sy = (1 << 6) / subpixelResolutionY;
+            unsigned int i;
+            for (i = 0; i < ftglyph->bitmap.rows; i++) {
+                const UInt8* src = ftglyph->bitmap.buffer + i * ftglyph->bitmap.pitch;
+                UInt8* dst = glyphInfo->image + i * rowBytes;
+                memcpy(dst, src, ftglyph->bitmap.width);
+            }
             // Render remaining images
+            int sx = (1 << 6) / subpixelResolutionX, sy = (1 << 6) / subpixelResolutionY;
+            FT_Bitmap bitmap = ftglyph->bitmap;
+            bitmap.rows = height;
+            bitmap.pitch = bitmap.width = width;
+            int prevX = ftglyph->bitmap_left * (1 << 6), prevY = (ftglyph->bitmap_top - height) * (1 << 6);
             int x, y;
             for (y = 0; y < subpixelResolutionY; y++) {
                 for (x = (y == 0); x < subpixelResolutionX; x++) {
-                    // We need to reload glyph, so that freetype can perform hinting
-                    error = FT_Load_Glyph(scalerInfo->face, glyphCode, context->loadFlags);
-                    if (!error) {
-                        ftglyph = scalerInfo->face->glyph;
-                        if (context->doBold && outlineGlyph) {
-                            GlyphSlot_Embolden(ftglyph, context->transform);
-                        }
-                        FT_Outline_Translate(&ftglyph->outline, sx * x, -sy * y);
-                        error = FT_Render_Glyph(ftglyph, context->renderFlags);
-                    }
+                    bitmap.buffer = glyphInfo->image + imageSize * (subpixelResolutionX * y + x);
+                    int newX = sx * x, newY = -sy * y;
+                    FT_Outline_Translate(&ftglyph->outline, newX - prevX, newY - prevY);
+                    error = FT_Outline_Get_Bitmap(library, &ftglyph->outline, &bitmap);
                     if (error) {
-                        CopySupplementarySubpixelToGrey8(glyphInfo->image, width, height,
-                                                         glyphInfo->image + imageSize * (subpixelResolutionX * y + x),
-                                                         width, height, 0, 0);
-                    } else {
-                        CopySupplementarySubpixelToGrey8(ftglyph->bitmap.buffer,
-                                                         ftglyph->bitmap.width, ftglyph->bitmap.rows,
-                                                         glyphInfo->image + imageSize * (subpixelResolutionX * y + x),
-                                                         width, height,
-                                                         ftglyph->bitmap_left - originLeft,
-                                                         originTop - ftglyph->bitmap_top);
+                        // In case of error, copy first image
+                        memcpy(bitmap.buffer, glyphInfo->image, imageSize);
                     }
+                    prevX = newX;
+                    prevY = newY;
                 }
             }
         } else if (context->fixedSizeIndex == -1) {
