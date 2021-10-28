@@ -730,6 +730,9 @@ class XWindowPeer extends XPanelPeer implements WindowPeer,
      */
     public void displayChanged() {
         executeDisplayChangedOnEDT(getGraphicsConfiguration());
+        XToolkit.awtLock();
+        checkIfOnNewScreen(getBounds());
+        XToolkit.awtUnlock();
     }
 
     /**
