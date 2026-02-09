@@ -475,9 +475,8 @@ public abstract class LWComponentPeer<T extends Component, D extends JComponent>
     }
 
     private void applyConstrain(final Graphics g) {
-        final SunGraphics2D sg2d = (SunGraphics2D) g;
         final Rectangle size = localToWindow(getSize());
-        sg2d.constrain(size.x, size.y, size.width, size.height, getVisibleRegion());
+        g.constrain(size.x, size.y, size.width, size.height, getVisibleRegion());
     }
 
     Region getVisibleRegion() {

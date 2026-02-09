@@ -145,6 +145,8 @@ public class LWWindowPeer
 
     private volatile boolean textured;
 
+    private GraphicsFactory graphicsFactory;
+
     private final PeerType peerType;
 
     private final SecurityWarningWindow warningWindow;
@@ -319,21 +321,33 @@ public class LWWindowPeer
         return false;
     }
 
+    public void setGraphicsFactory(GraphicsFactory factory) {
+        this.graphicsFactory = factory;
+    }
+
+    public interface GraphicsFactory {
+        Graphics create(Color fg, Color bg, Font f);
+    }
+
     protected final Graphics getOnscreenGraphics(Color fg, Color bg, Font f) {
-        SurfaceData surfaceData = getSurfaceData();
-        if (surfaceData == null) {
+        if (graphicsFactory == null) {
             return null;
         }
-        if (fg == null) {
-            fg = SystemColor.windowText;
-        }
-        if (bg == null) {
-            bg = SystemColor.window;
-        }
-        if (f == null) {
-            f = DEFAULT_FONT;
-        }
-        return new SunGraphics2D(surfaceData, fg, bg, f);
+        return graphicsFactory.create(fg, bg, f);
+//        SurfaceData surfaceData = getSurfaceData();
+//        if (surfaceData == null) {
+//            return null;
+//        }
+//        if (fg == null) {
+//            fg = SystemColor.windowText;
+//        }
+//        if (bg == null) {
+//            bg = SystemColor.window;
+//        }
+//        if (f == null) {
+//            f = DEFAULT_FONT;
+//        }
+//        return new SunGraphics2D(surfaceData, fg, bg, f);
     }
 
     @Override

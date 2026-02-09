@@ -361,6 +361,7 @@ public final class SunGraphics2D
     /**
      * Constrain rendering for lightweight objects.
      */
+    @Override
     public void constrain(int x, int y, int w, int h, Region region) {
         if ((x | y) != 0) {
             translate(x, y);

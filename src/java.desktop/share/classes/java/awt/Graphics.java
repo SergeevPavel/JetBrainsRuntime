@@ -24,6 +24,8 @@
  */
 package java.awt;
 
+import sun.java2d.pipe.Region;
+
 import java.awt.image.ImageObserver;
 import java.text.AttributedCharacterIterator;
 
@@ -1259,5 +1261,19 @@ public abstract class Graphics {
             throw new NullPointerException("null rectangle parameter");
         }
         return r;
+    }
+
+    /**
+     * Constrain rendering for lightweight objects.
+     *
+     * @param x the x coordinate of the constrained area
+     * @param y the y coordinate of the constrained area
+     * @param width the width of the constrained area
+     * @param height the height of the constrained area
+     * @param visibleRegion the visible region to constrain to
+     */
+    @SuppressWarnings("exports")
+    public void constrain(int x, int y, int width, int height, Region visibleRegion) {
+
     }
 }
