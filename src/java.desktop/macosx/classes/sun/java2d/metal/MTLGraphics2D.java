@@ -69,11 +69,11 @@ public final class MTLGraphics2D {
         MTLRenderQueue rq = MTLRenderQueue.getInstance();
         rq.lock();
         try {
-            MTLContext ctx = dst.getContext();
             BufferedContext.validateContext(dst);
 
             rq.flushNow();
             rq.enqueueExternal(task);
+            rq.flushNow();
             return true;
         } finally {
             rq.unlock();

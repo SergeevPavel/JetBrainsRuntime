@@ -126,14 +126,14 @@ public abstract class MTLSurfaceData extends SurfaceData
     }
 
     protected final int scale;
-    protected final int width;
-    protected final int height;
+    public final int width;
+    public final int height;
     protected int type;
     private MTLGraphicsConfig graphicsConfig;
     // these fields are set from the native code when the surface is
     // initialized
-    private int nativeWidth;
-    private int nativeHeight;
+    public int nativeWidth;
+    public int nativeHeight;
 
     /**
      * Returns the appropriate SurfaceType corresponding to the given Metal
