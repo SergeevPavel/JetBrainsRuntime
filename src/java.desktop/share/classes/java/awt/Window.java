@@ -81,7 +81,7 @@ import sun.awt.AppContext;
 import sun.awt.DebugSettings;
 import sun.awt.SunToolkit;
 import sun.awt.util.IdentityArrayList;
-import sun.awt.util.ThreadGroupUtils;
+import sun.java2d.SurfaceData;
 import sun.java2d.marlin.stats.StatDouble;
 import sun.java2d.pipe.Region;
 import sun.security.action.GetPropertyAction;
@@ -4597,6 +4597,37 @@ public class Window extends Container implements Accessible {
             }
         }
     } // static
+
+    /**
+     * Graphics factory interface for creating graphics objects.
+     */
+    @SuppressWarnings("exports")
+    public interface GraphicsFactory {
+        /**
+         * Creates a graphics object with the specified foreground, background, and font.
+         *
+         * @param surfaceData the surface data
+         * @param fg          the foreground color
+         * @param bg          the background color
+         * @param f           the font
+         * @return the created graphics object
+         */
+        Graphics create(SurfaceData surfaceData, Color fg, Color bg, Font f);
+    }
+
+    /**
+     * Sets graphic factory
+     *
+     * @param factory will be used to create graphics objects
+     */
+    public void setGraphicsFactory(Window.GraphicsFactory factory) {
+        this.graphicsFactory = factory;
+    }
+
+    /**
+     * Used by LWWindowPeer to create graphics objects
+     */
+    public transient Window.GraphicsFactory graphicsFactory;
 
     // a window doesn't need to be updated in the Z-order.
     @Override
