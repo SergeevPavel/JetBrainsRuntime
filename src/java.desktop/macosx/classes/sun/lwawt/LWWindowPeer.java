@@ -331,23 +331,22 @@ public class LWWindowPeer
 
     protected final Graphics getOnscreenGraphics(Color fg, Color bg, Font f) {
         if (graphicsFactory == null) {
-            return null;
+            SurfaceData surfaceData = getSurfaceData();
+            if (surfaceData == null) {
+                return null;
+            }
+            if (fg == null) {
+                fg = SystemColor.windowText;
+            }
+            if (bg == null) {
+                bg = SystemColor.window;
+            }
+            if (f == null) {
+                f = DEFAULT_FONT;
+            }
+            return new SunGraphics2D(surfaceData, fg, bg, f);
         }
         return graphicsFactory.create(fg, bg, f);
-//        SurfaceData surfaceData = getSurfaceData();
-//        if (surfaceData == null) {
-//            return null;
-//        }
-//        if (fg == null) {
-//            fg = SystemColor.windowText;
-//        }
-//        if (bg == null) {
-//            bg = SystemColor.window;
-//        }
-//        if (f == null) {
-//            f = DEFAULT_FONT;
-//        }
-//        return new SunGraphics2D(surfaceData, fg, bg, f);
     }
 
     @Override
