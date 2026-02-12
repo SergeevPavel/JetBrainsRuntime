@@ -82,15 +82,24 @@ public class SwingMark {
       }
    }
 
-   public static void main(String[] args) {
+   public interface FrameFactory {
+      public JFrame createFrame();
+   }
 
+   static FrameFactory frameFactory = null;
+
+   public static void setFrameFactory(FrameFactory factory) {
+      frameFactory = factory;
+   }
+
+   public static void start(String[] args) {
       System.out.println("Starting SwingMark");
       startTime = new Date();
       System.out.println("SwingMark Test started at " + startTime);
 
       parseArgs(args);
 
-      JFrame f = new JFrame("SwingMarks");
+      JFrame f = frameFactory.createFrame();
       Thread.currentThread().setPriority(Thread.NORM_PRIORITY-1);
       f.addWindowListener( new Closer() );
 
