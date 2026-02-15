@@ -519,6 +519,10 @@ public class Window extends Container implements Accessible {
     }
 
     private void init(GraphicsConfiguration gc) {
+        final GraphicsFactoryProvider provider = Window.defaultGraphicsFactoryProvider;
+        if (provider != null) {
+            this.graphicsFactory = provider.getDefaultGraphicsFactory(this);
+        }
         GraphicsEnvironment.checkHeadless();
 
         syncLWRequests = systemSyncLWRequests;
@@ -666,6 +670,10 @@ public class Window extends Container implements Accessible {
 
     private void ownedInit(Window owner) {
         this.parent = owner;
+        final GraphicsFactoryProvider provider = Window.defaultGraphicsFactoryProvider;
+        if (provider != null) {
+            this.graphicsFactory = provider.getDefaultGraphicsFactory(this);
+        }
         if (owner != null) {
             owner.addOwnedWindow(weakThis);
             if (owner.isAlwaysOnTop()) {
@@ -4597,6 +4605,39 @@ public class Window extends Container implements Accessible {
             }
         }
     } // static
+
+    /**
+     * Provides an interface for obtaining a default implementation of a GraphicsFactory.
+     * This interface defines a method to access the default graphics factory instance
+     * which can be used for producing graphics-related resources.
+     */
+    public interface GraphicsFactoryProvider {
+        /**
+         * Retrieves the default graphics factory instance.
+         * @param window the window for which the graphics factory is requested
+         * @return the default graphics factory
+         */
+        GraphicsFactory getDefaultGraphicsFactory(Window window);
+    }
+
+    /**
+     * A static variable that holds the default instance of the {@code GraphicsFactoryProvider}.
+     * This is used as a fallback or pre-configured factory provider for creating graphical
+     * objects or components within the application.
+     * The value can be {@code null}, indicating that no default factory provider has
+     * been set. It is expected that the application or framework initializes this
+     * variable with an appropriate implementation of {@code GraphicsFactoryProvider}
+     * if a default is required.
+     */
+    public static GraphicsFactoryProvider defaultGraphicsFactoryProvider = null;
+
+    /**
+     * Sets the default graphics factory provider.
+     * @param provider the graphics factory provider to set as default
+     */
+    public static void setDefaultGraphicsFactoryProvider(GraphicsFactoryProvider provider) {
+        defaultGraphicsFactoryProvider = provider;
+    }
 
     /**
      * Graphics factory interface for creating graphics objects.
